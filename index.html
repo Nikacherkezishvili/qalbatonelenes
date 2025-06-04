@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8" />
+  <title>ცეცხლში ჩაშლა</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 1;
+    }
+    .active {
+      display: flex;
+    }
+    input, button {
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    /* ცეცხლის ანიმაცია */
+    .fire {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 200px;
+      background: radial-gradient(circle at 50% 100%, rgba(255,140,0,0.6), rgba(255,0,0,0.3), transparent 70%);
+      pointer-events: none;
+      animation: firePulse 2s infinite ease-in-out;
+      z-index: 0;
+    }
+
+    @keyframes firePulse {
+      0% { background-position: 50% 100%; filter: blur(10px); }
+      50% { background-position: 48% 95%; filter: blur(15px); }
+      100% { background-position: 52% 100%; filter: blur(10px); }
+    }
+
+    /* ტექსტი გამოჩენა */
+    .floating-text {
+      font-size: 40px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: floatDown 8s ease-in forwards;
+      z-index: 2;
+      white-space: nowrap;
+    }
+
+    @keyframes floatDown {
+      0% { transform: translateY(-50%) scale(1); opacity: 1; }
+      70% { transform: translateY(30%) scale(1.05); opacity: 1; }
+      100% { transform: translateY(120%) scale(1.2); opacity: 0.5; }
+    }
+
+    /* ტექსტის დაფლეთვა */
+    .char {
+      display: inline-block;
+      opacity: 1;
+      transform: translateY(0);
+      animation: tear 2s forwards ease-in;
+      animation-delay: var(--delay);
+    }
+
+    @keyframes tear {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      50% { transform: translateY(10px) rotate(10deg); opacity: 0.8; }
+      100% { transform: translateY(100px) rotate(45deg); opacity: 0; }
+    }
+
+    .falling-name {
+      position: absolute;
+      font-size: 20px;
+      border: 2px solid white;
+      padding: 5px 10px;
+      border-radius: 10px;
+      animation: fall 4s linear infinite, rainbow 2s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes fall {
+      0% { top: -50px; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    @keyframes rainbow {
+      0% { border-color: red; color: red; }
+      20% { border-color: orange; color: orange; }
+      40% { border-color: yellow; color: yellow; }
+      60% { border-color: green; color: green; }
+      80% { border-color: blue; color: blue; }
+      100% { border-color: purple; color: purple; }
+    }
+
+    /* popup ტექსტი */
+    .popup {
+      position: absolute;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: white;
+      padding: 20px 30px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 20px;
+      opacity: 0;
+      z-index: 3;
+      display: none;
+      animation: popupRise 3s ease-out forwards;
+      animation-delay: 10s;
+    }
+
+    @keyframes popupRise {
+      0% {
+        bottom: -100px;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.8);
+      }
+      50% {
+        opacity: 1;
+        bottom: 50px;
+        transform: translateX(-50%) scale(1.05);
+      }
+      100% {
+        opacity: 1;
+        bottom: 80px;
+        transform: translateX(-50%) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen 1 -->
+  <div id="screen1" class="screen active">
+    <h1>შეიყვანე სახელი:</h1>
+    <input type="text" id="nameInput" />
+    <button onclick="goToScreen2()">გაგრძელება</button>
+  </div>
+
+  <!-- Screen 2 -->
+  <div id="screen2" class="screen">
+    <h1>ჩაწერე ტექსტი:</h1>
+    <input type="text" id="textInput" />
+    <button onclick="goToScreen3()">გაგრძელება</button>
+  </div>
+
+  <!-- Screen 3 -->
+  <div id="screen3" class="screen">
+    <div id="textWrapper" class="floating-text"></div>
+    <div class="fire" id="fireLayer"></div>
+  </div>
+
+  <!-- Popup შეტყობინება -->
+  <div id="finalMessage" class="popup">
+    ელენე საუკეთესო ხარ! თავი მოიკალი, ფრენბურთი მეთამაშე, ხვალე წამო სკოლაში.
+  </div>
+
+  <script>
+    let nameDivs = [];
+
+    function goToScreen2() {
+      const name = document.getElementById('nameInput').value;
+      if (!name) return;
+
+      document.getElementById('screen1').classList.remove('active');
+      document.getElementById('screen2').classList.add('active');
+
+      for (let i = 0; i < 20; i++) {
+        const el = document.createElement('div');
+        el.className = 'falling-name';
+        el.innerText = name;
+        el.style.left = Math.random() * 90 + '%';
+        el.style.animationDelay = Math.random() * 3 + 's';
+        document.body.appendChild(el);
+        nameDivs.push(el);
+      }
+    }
+
+    function goToScreen3() {
+      const text = document.getElementById('textInput').value;
+      if (!text) return;
+
+      // Remove falling names
+      nameDivs.forEach(el => el.remove());
+      nameDivs = [];
+
+      document.getElementById('screen2').classList.remove('active');
+      document.getElementById('screen3').classList.add('active');
+
+      const wrapper = document.getElementById('textWrapper');
+      wrapper.innerHTML = '';
+      wrapper.classList.add('floating-text');
+
+      for (let i = 0; i < text.length; i++) {
+        const span = document.createElement('span');
+        span.innerText = text[i];
+        span.style.setProperty('--delay', `${8 + i * 0.1}s`);
+        span.classList.add('char');
+        wrapper.appendChild(span);
+      }
+
+      // აჩვენოს popup ტექსტი 10 წამში
+      setTimeout(() => {
+        const popup = document.getElementById('finalMessage');
+        popup.style.display = 'block';
+      }, 10000);
+    }
+  </script>
+</body>
+</html>
